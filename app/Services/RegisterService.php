@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Events\RegistrationEvent;
+use App\Exceptions\UserExistException;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -16,6 +18,13 @@ class RegisterService{
         string $password,
         ?string $connectingIp = null
     ) : User{
+
+        $checkIfUserExist = User::where('email', $email)->first();
+
+        if ($checkIfUserExist){
+
+            throw new RuntimeException('User already exist with the provided email', 407);
+        }
        
             $user = new User();
     
@@ -40,6 +49,8 @@ class RegisterService{
 
                 throw new RuntimeException('Oops, I have troubles loading users details');
             }
+
+            event(new RegistrationEvent(user: $user));
 
            return $newUser;   
                 
