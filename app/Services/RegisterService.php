@@ -6,11 +6,15 @@ use App\Events\RegistrationEvent;
 use App\Exceptions\UserExistException;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
-use Illuminate\Http\Request;
 use Carbon\Carbon;
 use RuntimeException;
 
 class RegisterService{
+
+    protected static function checkUserExist(string $email): bool
+    {
+        return User::where('email', $email)->count() > 0;
+    }
 
     public static function signup(
         string $name,
@@ -19,40 +23,38 @@ class RegisterService{
         ?string $connectingIp = null
     ) : User{
 
-        $checkIfUserExist = User::where('email', $email)->first();
+        if (static::checkUserExist($email)) {
 
-        if ($checkIfUserExist){
-
-            throw new RuntimeException('User already exist with the provided email', 407);
+            throw new RuntimeException ('Email already exists');
         }
        
-            $user = new User();
+        $user = new User();
     
-            $user->name = $name;
+        $user->name = $name;
     
-            $user->email = $email;
+        $user->email = $email;
     
-            $user->password = Hash::make($password);
+        $user->password = Hash::make($password);
 
-            $user->last_login_at = Carbon::now()->toDateTimeString();
+        $user->last_login_at = Carbon::now()->toDateTimeString();
 
-            $user->last_login_ip = $connectingIp ?? 'Not set';
+        $user->last_login_ip = $connectingIp ?? 'Not set';
 
-            if (! $user->save()) {
+        if (! $user->save()) {
 
-                throw new RuntimeException('Failed to save new user');
-            }
+            throw new RuntimeException('Failed to save new user');
+        }
 
-            $newUser = User::where('email', $email)->first();
+        $newUser = User::where('email', $email)->first();
 
-            if ($newUser === null){
+        if ($newUser === null){
 
-                throw new RuntimeException('Oops, I have troubles loading users details');
-            }
+            throw new RuntimeException('Oops, I have troubles loading users details');
+        }
 
-            event(new RegistrationEvent(user: $user));
+        event(new RegistrationEvent(user: $user));
 
-           return $newUser;   
+        return $newUser;   
                 
         }
 

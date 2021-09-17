@@ -36,7 +36,7 @@ class LoginController extends Controller
 
                     'status' => $exception->getCode()
 
-                ], 500);
+                ], 404);
 
             }
         }else{
