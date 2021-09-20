@@ -11,33 +11,24 @@ use RuntimeException;
 
 class LoginService 
 {
-    protected static function checkUserIsSaved(string $email): User
-    {
-        return User::where('email', $email)->first();
-    }
 
-    public static function signin(Array $input, Request $request): array
+    public static function signin(array $input, $ipAddress): array
     {
-        $savedUser = static::checkUserIsSaved($input['email']);
+        $savedUser = User::where('email', $input['email'])->first();;
 
         if(!$savedUser && Hash::check($input['password'], $savedUser->password)) {
 
-            throw LoginException::userNotFoundException('No user with this credential found');
+            throw LoginException::userNotFoundException('No account with this credential found');
 
         }
 
         $token = $savedUser->createToken('token') ->accessToken;
 
         $savedUser->update([
-
             'last_login_at' => Carbon::now()->toDateTimeString(),
+            'last_login_ip' => $ipAddress
+        ]);
 
-            'last_login_ip' => $request->getClientIp()
-            ]);
-
-        return [
-            
-            'token' => $token
-        ];
+        return ['token' => $token];
     }
 }

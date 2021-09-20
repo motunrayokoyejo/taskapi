@@ -13,14 +13,14 @@ class LoginController extends Controller
     {
         $validateUserInput = $this->validate($request, [
             'email' => ['required', 'email'],
-            'password' => ['required']
+            'password' => ['required'],
         ]);
 
         if ($validateUserInput){
             
             try {
 
-                $validatedUser = LoginService::signin($validateUserInput, $request);
+                $validatedUser = LoginService::signin($validateUserInput, $request->getClientIp());
 
                 return response()->json([
 
